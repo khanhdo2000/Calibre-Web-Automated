@@ -99,6 +99,8 @@ def add_security_headers(resp):
     csp += "; img-src 'self'"
     if request.path.startswith("/author/") and config.config_use_goodreads:
         csp += " images.gr-assets.com i.gr-assets.com s.gr-assets.com"
+    # Add S3 domain for cover images
+    csp += " s3.ap-southeast-1.amazonaws.com"
     csp += " data:"
     if request.endpoint == "edit-book.show_edit_book" or config.config_use_google_drive:
         csp += " *"
@@ -1897,3 +1899,4 @@ def show_book(book_id):
         flash(_("Oops! Selected book is unavailable. File does not exist or is not accessible"),
               category="error")
         return redirect(url_for("web.index"))
+# Hot reload test Sun Oct 26 17:51:43 +07 2025

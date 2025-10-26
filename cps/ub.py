@@ -29,7 +29,7 @@ except ImportError as e:
         OAuthConsumerMixin = BaseException
         oauth_support = False
 from sqlalchemy import create_engine, exc, exists, event, text
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import Column, ForeignKey, UniqueConstraint
 from sqlalchemy import String, Integer, SmallInteger, Boolean, DateTime, Float, JSON
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.sql.expression import func
@@ -620,6 +620,26 @@ class Thumbnail(Base):
     expiration = Column(DateTime, nullable=True)
 
 
+class S3CoverUpload(Base):
+    """Tracks which book covers have been uploaded to S3"""
+    __tablename__ = 's3_cover_uploads'
+
+    id = Column(Integer, primary_key=True)
+    book_id = Column(Integer, nullable=False, index=True)
+    resolution = Column(String(10), nullable=True)  # 'og', 'sm', 'md', 'lg', or NULL for original
+    s3_key = Column(String(500), nullable=False)
+    uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    file_size = Column(Integer)  # Size in bytes
+    etag = Column(String(100))  # S3 ETag for verification
+
+    __table_args__ = (
+        UniqueConstraint('book_id', 'resolution', name='unique_book_resolution'),
+    )
+
+    def __repr__(self):
+        return f'<S3CoverUpload(book_id={self.book_id}, resolution={self.resolution})>'
+
+
 # Add missing tables during migration of database
 def add_missing_tables(engine, _session):
     if not engine.dialect.has_table(engine.connect(), "archived_book"):
@@ -628,6 +648,8 @@ def add_missing_tables(engine, _session):
         Thumbnail.__table__.create(bind=engine)
     if not engine.dialect.has_table(engine.connect(), "kosync_progress"):
         KOSyncProgress.__table__.create(bind=engine)
+    if not engine.dialect.has_table(engine.connect(), "s3_cover_uploads"):
+        S3CoverUpload.__table__.create(bind=engine)
 
 
 # migrate all settings missing in registration table

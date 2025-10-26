@@ -1,13 +1,22 @@
-{% macro book_cover(book, alt=None) -%}
+{% macro book_cover(book, alt=None, resolution='og') -%}
     {%- set image_title = book.title if book.title else book.name -%}
     {%- set image_alt = alt if alt else image_title -%}
-    {% set srcset = book|get_cover_srcset %}
+    {%- set s3_url = book|get_s3_cover_url(resolution) -%}
+    {%- if s3_url %}
     <img
-        srcset="{{ srcset }}"
-        src="{{ url_for('web.get_cover', book_id=book.id, resolution='og', c=book|last_modified) }}"
+        src="{{ s3_url }}"
         alt="{{ image_alt }}"
         loading="lazy"
     />
+    {%- else %}
+    {% set srcset = book|get_cover_srcset %}
+    <img
+        srcset="{{ srcset }}"
+        src="{{ url_for('web.get_cover', book_id=book.id, resolution=resolution, c=book|last_modified) }}"
+        alt="{{ image_alt }}"
+        loading="lazy"
+    />
+    {%- endif %}
 {%- endmacro %}
 
 {% macro series(series, alt=None) -%}

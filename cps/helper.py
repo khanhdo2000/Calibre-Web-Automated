@@ -774,6 +774,26 @@ def get_book_cover_internal(book, resolution=None):
     instead of falling back to the original cover.jpg.
     """
     if book and book.has_cover:
+        # Check S3 first (highest priority)
+        try:
+            from .s3_cover import get_s3_manager
+            s3_manager = get_s3_manager()
+            log.info("S3 manager enabled: %s for book %s", s3_manager.enabled, book.id)
+            if s3_manager.enabled:
+                log.info("Calling get_cover_url for book %s, resolution %s", book.id, resolution)
+                s3_url = s3_manager.get_cover_url(book.id, resolution)
+                log.info("S3 URL for book %s: %s", book.id, s3_url)
+                if s3_url:
+                    # Redirect to S3/CDN URL (browser fetches directly)
+                    from flask import redirect
+                    log.info("Redirecting to S3 URL: %s", s3_url)
+                    return redirect(s3_url, code=302)
+        except Exception as ex:
+            log.error("S3 check failed for book %s: %s", book.id, ex)
+            import traceback
+            log.error("S3 check traceback: %s", traceback.format_exc())
+            # Fall through to other sources
+            pass
 
         # Send the book cover thumbnail if it exists in cache
         if resolution:

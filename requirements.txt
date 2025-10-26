@@ -74,6 +74,9 @@ faust-cchardet>=2.1.18,<2.1.20
 py7zr>=0.15.0,<0.21.0
 mutagen>=1.40.0,<1.50.0
 
+# AWS S3 integration for cover storage
+boto3>=1.34.0,<2.0.0
+
 # Comics
 natsort>=2.2.0,<8.5.0
 comicapi>=2.2.0,<3.3.0

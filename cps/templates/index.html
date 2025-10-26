@@ -14,7 +14,7 @@
              data-book-formats="{% for format in entry.Books.data %}{{ format.format.lower() }}{% if not loop.last %},{% endif %}{% endfor %}"
              class="book-cover-link">
               <span class="img" title="{{ entry.Books.title }}">
-                {{ image.book_cover(entry.Books) }}
+                {{ image.book_cover(entry.Books, resolution='md') }}
                 {% if entry[2] == True %}<span class="badge read glyphicon glyphicon-ok"></span>{% endif %}
               </span>
           </a>
@@ -101,7 +101,7 @@
              data-book-formats="{% for format in entry.Books.data %}{{ format.format.lower() }}{% if not loop.last %},{% endif %}{% endfor %}"
              class="book-cover-link">
             <span class="img" title="{{ entry.Books.title }}">
-              {{ image.book_cover(entry.Books) }}
+              {{ image.book_cover(entry.Books, resolution='md') }}
               {% if entry[2] == True %}<span class="badge read glyphicon glyphicon-ok"></span>{% endif %}
             </span>
           </a>

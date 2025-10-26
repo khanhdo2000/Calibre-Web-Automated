@@ -104,6 +104,14 @@ class _Settings(_Base):
     config_google_drive_folder = Column(String)
     config_google_drive_watch_changes_response = Column(JSON, default={})
 
+    # S3 Cover Storage Configuration
+    config_s3_enabled = Column(Boolean, default=False)
+    config_s3_bucket = Column(String, default='')
+    config_s3_region = Column(String, default='us-east-1')
+    config_s3_cdn_url = Column(String, default='')  # Optional CloudFront URL
+    config_s3_access_key = Column(String, default='')
+    config_s3_secret_key = Column(String, default='')
+
     config_use_goodreads = Column(Boolean, default=False)
     config_goodreads_api_key = Column(String)
     config_hardcover_token = Column(String)

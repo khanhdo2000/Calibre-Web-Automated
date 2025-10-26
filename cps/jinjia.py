@@ -16,7 +16,7 @@ from flask import Blueprint, request, url_for, g
 from flask_babel import format_date
 from .cw_login import current_user
 
-from . import constants, logger
+from . import constants, logger, config
 
 jinjia = Blueprint('jinjia', __name__)
 log = logger.create()
@@ -184,3 +184,36 @@ def contains_music(book_formats):
         if format.format.lower() in g.constants.EXTENSIONS_AUDIO:
             result = True
     return result
+
+
+@jinjia.app_template_filter('get_s3_cover_url')
+def get_s3_cover_url(book, resolution='og'):
+    """Get direct S3 URL for book cover if S3 is enabled and cover exists"""
+    import os
+    from . import ub
+    
+    # Map resolution to S3 path suffix
+    s3_resolution = None if resolution == 'og' else resolution
+    
+    # Check if cover exists in S3 database
+    try:
+        upload_record = ub.session.query(ub.S3CoverUpload) \
+            .filter(ub.S3CoverUpload.book_id == book.id) \
+            .filter(ub.S3CoverUpload.resolution == s3_resolution) \
+            .first()
+        
+        if upload_record:
+            # Build S3 URL with hardcoded values
+            bucket = os.environ.get('S3_BUCKET', 'cdn.mnd.vn')
+            region = os.environ.get('S3_REGION', 'ap-southeast-1')
+            
+            cdn_url = os.environ.get('S3_CDN_URL', '')
+            if cdn_url:
+                return f"{cdn_url}/{upload_record.s3_key}"
+            else:
+                # Direct S3 URL format
+                return f"https://s3.{region}.amazonaws.com/{bucket}/{upload_record.s3_key}"
+    except Exception as e:
+        log.debug("Error getting S3 URL: %s", e)
+    
+    return None
